@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import os
 import requests
 from datetime import datetime
@@ -24,7 +26,7 @@ class App:
             "signature": 'keyId="' + keyId + '",headers="vDate",algorithm="sha256-digest",signature=' + signature,
             "vapi": "1",
             "vdate": vDate,
-            "vhint": "a tutaj podobnie jak w vcanonicalurl, tez byle co",
+            "vhint": "a tutaj moze byc byle co",
             "vos": "Android",  # Android lub iOS, bez roznicy
             "vversioncode": "hujlo hujlo placcie 40zl co roku za dziecko",
             "user-agent": "Dart/3.3 (dart:io)",
@@ -230,3 +232,4 @@ print(f"Szczęśliwy numerek: {"jeszcze nie wygenerowany" if luckyNumber == 0 el
 print(f"Liczba wysłanych wiadomości: {len(app.getMessages("sent", "2024-09-04%2022%3A15%3A30"))}")
 print(f"Liczba odebranych wiadomości: {len(app.getMessages("received", "2024-09-04%2022%3A15%3A30"))}")
 print(f"Liczba usuniętych wiadomości: {len(app.getMessages("deleted", "2024-09-04%2022%3A15%3A30"))}")
+# print(f"{app.getTimetable("2024-09-06", "2024-09-06")}")
