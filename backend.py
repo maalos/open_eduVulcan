@@ -6,18 +6,19 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 import json
+import jwt
 
 load_dotenv()
 
 class App:
-    def __init__(self, town, schoolId, keyId, signature, vDate, pupilId, alias, password):
-        self.url = f"https://lekcjaplus.vulcan.net.pl/{town}/{schoolId}/api/mobile"
-
+    def __init__(self, keyId, signature, vDate, pupilId, alias, password):
         self.baseParams = {
             "pupilId": pupilId,
         }
 
         self.globalKey = "" # hash skrzynki pocztowej
+        self.town = "" # wiadomo ocb, ale ustawiamy na wszelki wypadek domyslna wartosc na ta z env
+        self.schoolId = "" # tu tak samo, tylko nazewnictwo do dupy
 
         self.baseHeaders = {
             "accept-encoding": "gzip",
@@ -34,10 +35,10 @@ class App:
             "vversioncode": "617"
         }
 
-        data = self.getUserData()
-        if data and data[2] != None:
-            print(f"Zalogowano jako {data[2]}")
-            return
+        #data = self.getUserData()
+        #if data and data[2] != None:
+        #    print(f"Zalogowano jako {data[2]}")
+        #    return
 
         ### ETAP 1 - bieremy tokena ze strony logowania i wysylamy razem z aliasem (emailem)
 
@@ -99,6 +100,9 @@ class App:
         verificationToken = mysteriousJSON["Tokens"][0]
         #accessToken = mysteriousJSON["AccessToken"] # nieuzywane? xd
 
+        self.town = jwt.decode(verificationToken, options={"verify_signature": False}, algorithms=["RS256"]).get('tenant')  # nie mam nawet jak tego gowna przetestowac bo nie wiem jak sie wylogowac XDDDD
+                                                                                                                                # a no tak, sam se napisze wylogowanie
+
         data = {
             "AppName": "DzienniczekPlus 3.0", # to musi zostac, i nie, nie moze byc tu wpisane dupadupa123
             "Envelope": {
@@ -113,7 +117,7 @@ class App:
             }
         }
 
-        response = requests.post(f"https://lekcjaplus.vulcan.net.pl/{town}/api/mobile/register/jwt", headers=self.baseHeaders, data=json.dumps(data))
+        response = requests.post(f"https://lekcjaplus.vulcan.net.pl/{self.town}/api/mobile/register/jwt", headers=self.baseHeaders, data=json.dumps(data))
         # jesli tu wywala "Użytkownik nie jest uprawniony do przeglądania żądanych danych" to cos jest nie tak w naglowkach, pewnie signaturka lub data albo czegos brakuje
         print("Logowanie i rejestracja JWT", response.json()["Status"]["Message"])
 
@@ -121,10 +125,13 @@ class App:
         print(f"Zalogowano jako {data[2]}")
 
     def getUserData(self):
-        response = requests.get(f"{self.url}/register/hebe?mode=2&lastSyncDate=1970-01-01%2001%3A00%3A00", headers=self.baseHeaders)
+        response = requests.get(f"https://lekcjaplus.vulcan.net.pl/{self.town}/api/mobile/register/hebe?mode=2&lastSyncDate=1970-01-01%2001%3A00%3A00", headers=self.baseHeaders)
         responseEnvelope = response.json()['Envelope']
 
         self.globalKey = responseEnvelope[0]['MessageBox']['GlobalKey']
+        self.schoolId = responseEnvelope[0]['Links']['Symbol']
+
+        self.url = f"https://lekcjaplus.vulcan.net.pl/{self.town}/{self.schoolId}/api/mobile"
 
         grade = responseEnvelope[0]["ClassDisplay"]
         schoolName = responseEnvelope[0]["Unit"]["DisplayName"]
@@ -210,8 +217,8 @@ class App:
         return messageList
 
 app = App(
-    town = os.getenv("town"),
-    schoolId = os.getenv("schoolId"),
+    #town = os.getenv("town"),
+    #schoolId = os.getenv("schoolId"),
     keyId = os.getenv("keyId"),
     signature = os.getenv("signature"),
     vDate = os.getenv("vDate"),
