@@ -8,5 +8,8 @@ Potem:
 `python3 app.py`  
 
 ### TODO
-- co dusza zapragnie
+- funkcje od ocen (jeszcze zadnych nie mam)
+- funkcje od uwag (tez zadnych nie mam)
+- wysylanie wiadomosci
+- jakis interfejs dla uzyszkodnika i generowanie tych certow kluczy sruczy id szkoly itp itd
 - nie wrzucac secretow do repo xdddd
